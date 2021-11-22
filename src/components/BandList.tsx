@@ -1,23 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 
 import { Band } from '../interfaces/bandsInterface';
+import { SocketContext } from '../context/socketContext';
 
-interface Props {
-    data: Band[];
-    vote: ( id: string ) => void;
-    deleteBand: ( id: string ) => void;
-    updateBandName: ( id: string, bandName: string ) => void;
-}
+const BandList = () => {
 
-const BandList = ({ data, vote, deleteBand, updateBandName }: Props) => {
-
-    const [ bands, setBands ] = useState( data );
-
+    const [ bands, setBands ] = useState<Band[]>([]);
+    const { socket } = useContext( SocketContext );
+    
     useEffect(() => {
 
-        setBands( data );
+        socket.on('current-bands', ( data: Band[] ) => {
+            setBands( data );
+        });
+
+        return () => { 
+            socket.off('current-bands');
+        }
         
-    }, [ data ]);
+    }, [ socket ]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
         
@@ -34,9 +35,15 @@ const BandList = ({ data, vote, deleteBand, updateBandName }: Props) => {
     }
 
     const onBlur = (id: string, name: string) => {
-        
-        updateBandName( id, name )
+        socket.emit('update-band-name', { id, name });
+    }
 
+    const vote = (id: string) => {
+        socket.emit('vote-band', id);
+    }
+
+    const deleteBand = ( id: string ) => {
+        socket.emit('delete-band', id);
     }
 
     const createRows = () => {

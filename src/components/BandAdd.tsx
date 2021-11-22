@@ -1,14 +1,12 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { SocketContext } from '../context/socketContext';
 
-interface Props {
-    addBand: ( name: string ) => void;
-}
-
-const BandAdd = ({ addBand }: Props) => {
-
+const BandAdd = () => {
+    
+    const { socket } = useContext( SocketContext );
     const [ value, setValue ] = useState('');
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = ( e: React.ChangeEvent<HTMLInputElement> ) => {
         
         setValue( e.target.value );
 
@@ -19,7 +17,7 @@ const BandAdd = ({ addBand }: Props) => {
         e.preventDefault()
 
         if( value.trim().length > 0 ) {
-            addBand( value.trim() );
+            socket.emit('add-band', { name: value });
             setValue( '' );
         }
         
